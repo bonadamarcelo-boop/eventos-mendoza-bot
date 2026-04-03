@@ -10,8 +10,7 @@ TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 GMAIL_USER = os.environ.get("GMAIL_USER")
 GMAIL_PASSWORD = os.environ.get("GMAIL_PASSWORD")
-GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
-GOOGLE_CX = os.environ.get("GOOGLE_CX")
+SERPAPI_KEY = os.environ.get("SERPAPI_KEY")
 
 PALABRAS_CLAVE = [
     "inteligencia artificial Mendoza 2026",
@@ -19,7 +18,6 @@ PALABRAS_CLAVE = [
     "charla tecnología Mendoza",
     "evento ciencia Mendoza 2026",
     "machine learning Mendoza",
-    "IoT Mendoza evento",
 ]
 
 ARCHIVO_VISTOS = "eventos_vistos.json"
@@ -38,15 +36,15 @@ def buscar_eventos():
     eventos_encontrados = []
     for palabra in PALABRAS_CLAVE:
         try:
-            url = "https://www.googleapis.com/customsearch/v1"
+            url = "https://serpapi.com/search"
             params = {
-                "key": GOOGLE_API_KEY,
-                "cx": GOOGLE_CX,
+                "api_key": SERPAPI_KEY,
+                "engine": "google",
                 "q": palabra,
-                "num": 3,
-                "lr": "lang_es",
+                "hl": "es",
                 "gl": "ar",
-                "dateRestrict": "m1",
+                "num": 5,
+                "tbs": "qdr:m",
             }
             resp = requests.get(url, params=params, timeout=15)
             print(f"Buscando: '{palabra}' → status {resp.status_code}")
@@ -54,20 +52,16 @@ def buscar_eventos():
                 print(f"  Error: {resp.text[:200]}")
                 continue
             data = resp.json()
-            if "items" in data:
-                print(f"  Encontrados: {len(data['items'])} resultados")
-                for item in data["items"]:
-                    evento = {
-                        "titulo": item.get("title", ""),
-                        "link": item.get("link", ""),
-                        "descripcion": item.get("snippet", ""),
-                        "keyword": palabra
-                    }
-                    eventos_encontrados.append(evento)
-            else:
-                print(f"  Sin resultados")
-                if "error" in data:
-                    print(f"  Error API: {data['error'].get('message','')}")
+            resultados = data.get("organic_results", [])
+            print(f"  Encontrados: {len(resultados)} resultados")
+            for item in resultados:
+                evento = {
+                    "titulo": item.get("title", ""),
+                    "link": item.get("link", ""),
+                    "descripcion": item.get("snippet", ""),
+                    "keyword": palabra
+                }
+                eventos_encontrados.append(evento)
         except Exception as e:
             print(f"Error buscando '{palabra}': {e}")
     return eventos_encontrados
@@ -107,8 +101,7 @@ def enviar_email(asunto, cuerpo_html):
 
 def main():
     print(f"🔍 Buscando eventos... {datetime.now().strftime('%d/%m/%Y %H:%M')}")
-    print(f"API Key: {'OK' if GOOGLE_API_KEY else 'FALTA'}")
-    print(f"CX: {'OK' if GOOGLE_CX else 'FALTA'}")
+    print(f"SerpAPI Key: {'OK' if SERPAPI_KEY else 'FALTA'}")
 
     vistos = cargar_vistos()
     eventos = buscar_eventos()
