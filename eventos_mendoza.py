@@ -18,6 +18,9 @@ PALABRAS_CLAVE = [
     "charla tecnología Mendoza",
     "evento ciencia Mendoza 2026",
     "machine learning Mendoza",
+    "drones Mendoza evento",
+    "automatización industrial Mendoza",
+    "CONICET Mendoza evento",
 ]
 
 ARCHIVO_VISTOS = "eventos_vistos.json"
